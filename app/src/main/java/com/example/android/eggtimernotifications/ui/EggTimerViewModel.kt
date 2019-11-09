@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package com.example.android.eggtimernotifications.ui
 
 import android.app.*
@@ -44,6 +44,7 @@ class EggTimerViewModel(private val app: Application) : AndroidViewModel(app) {
     private val alarmManager = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private var prefs =
         app.getSharedPreferences("com.example.android.eggtimernotifications", Context.MODE_PRIVATE)
+
     private val notifyIntent = Intent(app, AlarmReceiver::class.java)
 
     private val _timeSelection = MutableLiveData<Int>()
@@ -113,10 +114,13 @@ class EggTimerViewModel(private val app: Application) : AndroidViewModel(app) {
         _alarmOn.value?.let {
             if (!it) {
                 _alarmOn.value = true
+
                 val selectedInterval = when (timerLengthSelection) {
-                    0 -> second * 10 //For testing only
-                    else ->timerLengthOptions[timerLengthSelection] * minute
+                    0 -> second * 5 //For testing only
+                    // else -> timerLengthOptions[timerLengthSelection] * minute
+                    else -> second * 5
                 }
+
                 val triggerTime = SystemClock.elapsedRealtime() + selectedInterval
 
                 // TODO: Step 1.15 call cancel notification
@@ -125,6 +129,7 @@ class EggTimerViewModel(private val app: Application) : AndroidViewModel(app) {
                         app,
                         NotificationManager::class.java
                     ) as NotificationManager
+
                 notificationManager.cancelNotifications()
 
                 AlarmManagerCompat.setExactAndAllowWhileIdle(
@@ -139,6 +144,7 @@ class EggTimerViewModel(private val app: Application) : AndroidViewModel(app) {
                 }
             }
         }
+
         createTimer()
     }
 
@@ -146,14 +152,21 @@ class EggTimerViewModel(private val app: Application) : AndroidViewModel(app) {
      * Creates a new timer
      */
     private fun createTimer() {
+
         viewModelScope.launch {
+
             val triggerTime = loadTime()
+
             timer = object : CountDownTimer(triggerTime, second) {
+
                 override fun onTick(millisUntilFinished: Long) {
+
                     _elapsedTime.value = triggerTime - SystemClock.elapsedRealtime()
+
                     if (_elapsedTime.value!! <= 0) {
                         resetTimer()
                     }
+
                 }
 
                 override fun onFinish() {
